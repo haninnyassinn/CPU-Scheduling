@@ -269,15 +269,13 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // Test Case 1
         List<Process> processes1 = new ArrayList<>();
-        System.out.println("Test Case 5");
-        processes1.add(new Process("P1", 0, 25, 3, 5));
-        processes1.add(new Process("P2", 1, 18, 2, 4));
-        processes1.add(new Process("P3", 3, 22, 4, 6));
-        processes1.add(new Process("P4", 5, 15, 1, 3));
-        processes1.add(new Process("P5", 8, 20, 5, 7));
-        processes1.add(new Process("P6", 12, 12, 6, 4));
-
+        System.out.println("Test Case 1");
+        processes1.add(new Process("P1", 0, 17, 4, 7));
+        processes1.add(new Process("P2", 2, 6, 7, 9));
+        processes1.add(new Process("P3", 5, 11, 3, 4));
+        processes1.add(new Process("P4", 15, 4, 6, 6));
         Result result1 = run(processes1);
         System.out.println("Execution Order: " + result1.order);
         for (ProcessResult pr : result1.processResults) {
@@ -291,17 +289,14 @@ public class Main {
 
         System.out.println("\n---------------------------------\n");
 
-
+        // Test Case 2
         List<Process> processes2 = new ArrayList<>();
-        System.out.println("Test Case 6");
-        processes2.add(new Process("P1", 0, 14, 4, 6));
-        processes2.add(new Process("P2", 4, 9, 2, 8));
-        processes2.add(new Process("P3", 7, 16, 5, 5));
-        processes2.add(new Process("P4", 10, 7, 1, 10));
-        processes2.add(new Process("P5", 15, 11, 3, 4));
-        processes2.add(new Process("P6", 20, 5, 6, 7));
-        processes2.add(new Process("P7", 25, 8, 7, 9));
-
+        System.out.println("Test Case 2");
+        processes2.add(new Process("P1", 0, 10, 3, 4));
+        processes2.add(new Process("P2", 0, 8, 1, 5));
+        processes2.add(new Process("P3", 0, 12, 2, 6));
+        processes2.add(new Process("P4", 0, 6, 4, 3));
+        processes2.add(new Process("P5", 0, 9, 5, 4));
         Result result2 = run(processes2);
         System.out.println("Execution Order: " + result2.order);
         for (ProcessResult pr : result2.processResults) {
@@ -312,6 +307,95 @@ public class Main {
         }
         System.out.println("Average Waiting Time: " + result2.avgW);
         System.out.println("Average Turnaround Time: " + result2.avgT);
+
+        System.out.println("\n---------------------------------\n");
+
+        // Test Case 3
+        List<Process> processes3 = new ArrayList<>();
+        System.out.println("Test Case 3");
+        processes3.add(new Process("P1", 0, 20, 5, 8));
+        processes3.add(new Process("P2", 3, 4, 3, 6));
+        processes3.add(new Process("P3", 6, 3, 4, 5));
+        processes3.add(new Process("P4", 10, 2, 2, 4));
+        processes3.add(new Process("P5", 15, 5, 6, 7));
+        processes3.add(new Process("P6", 20, 6, 1, 3));
+        Result result3 = run(processes3);
+        System.out.println("Execution Order: " + result3.order);
+        for (ProcessResult pr : result3.processResults) {
+            System.out.println("Process " + pr.name +
+                    ": Waiting Time = " + pr.waitingTime +
+                    ", Turnaround Time = " + pr.turnaroundTime +
+                    ", Quantum History = " + pr.quantumHistory);
+        }
+        System.out.println("Average Waiting Time: " + result3.avgW);
+        System.out.println("Average Turnaround Time: " + result3.avgT);
+
+        System.out.println("\n---------------------------------\n");
+
+        // Test Case 4
+        List<Process> processes4 = new ArrayList<>();
+        System.out.println("Test Case 4");
+        processes4.add(new Process("P1", 0, 3, 2, 10));
+        processes4.add(new Process("P2", 2, 4, 3, 12));
+        processes4.add(new Process("P3", 5, 2, 1, 8));
+        processes4.add(new Process("P4", 8, 5, 4, 15));
+        processes4.add(new Process("P5", 12, 3, 5, 9));
+        Result result4 = run(processes4);
+        System.out.println("Execution Order: " + result4.order);
+        for (ProcessResult pr : result4.processResults) {
+            System.out.println("Process " + pr.name +
+                    ": Waiting Time = " + pr.waitingTime +
+                    ", Turnaround Time = " + pr.turnaroundTime +
+                    ", Quantum History = " + pr.quantumHistory);
+        }
+        System.out.println("Average Waiting Time: " + result4.avgW);
+        System.out.println("Average Turnaround Time: " + result4.avgT);
+
+        System.out.println("\n---------------------------------\n");
+
+        //  Test Case 5
+        List<Process> processes5 = new ArrayList<>();
+        System.out.println("Test Case 5");
+        processes5.add(new Process("P1", 0, 25, 3, 5));
+        processes5.add(new Process("P2", 1, 18, 2, 4));
+        processes5.add(new Process("P3", 3, 22, 4, 6));
+        processes5.add(new Process("P4", 5, 15, 1, 3));
+        processes5.add(new Process("P5", 8, 20, 5, 7));
+        processes5.add(new Process("P6", 12, 12, 6, 4));
+        Result result5 = run(processes5);
+        System.out.println("Execution Order: " + result5.order);
+        for (ProcessResult pr : result5.processResults) {
+            System.out.println("Process " + pr.name +
+                    ": Waiting Time = " + pr.waitingTime +
+                    ", Turnaround Time = " + pr.turnaroundTime +
+                    ", Quantum History = " + pr.quantumHistory);
+        }
+        System.out.println("Average Waiting Time: " + result5.avgW);
+        System.out.println("Average Turnaround Time: " + result5.avgT);
+
+        System.out.println("\n---------------------------------\n");
+
+        //  Test Case 6
+        List<Process> processes6 = new ArrayList<>();
+        System.out.println("Test Case 6");
+        processes6.add(new Process("P1", 0, 14, 4, 6));
+        processes6.add(new Process("P2", 4, 9, 2, 8));
+        processes6.add(new Process("P3", 7, 16, 5, 5));
+        processes6.add(new Process("P4", 10, 7, 1, 10));
+        processes6.add(new Process("P5", 15, 11, 3, 4));
+        processes6.add(new Process("P6", 20, 5, 6, 7));
+        processes6.add(new Process("P7", 25, 8, 7, 9));
+        Result result6 = run(processes6);
+        System.out.println("Execution Order: " + result6.order);
+        for (ProcessResult pr : result6.processResults) {
+            System.out.println("Process " + pr.name +
+                    ": Waiting Time = " + pr.waitingTime +
+                    ", Turnaround Time = " + pr.turnaroundTime +
+                    ", Quantum History = " + pr.quantumHistory);
+        }
+        System.out.println("Average Waiting Time: " + result6.avgW);
+        System.out.println("Average Turnaround Time: " + result6.avgT);
     }
+
 
 }
