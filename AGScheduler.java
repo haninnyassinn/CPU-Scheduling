@@ -1,21 +1,11 @@
 import java.util.*;
 
-public class AGScheduler {
+public class Main {
 
     // phase names
     static final int FCFS = 0; // First 25% of the quantum - First Come First Serve phase
     static final int PRIORITY = 1; // Second 25% of quantum - Priority-based scheduling phase
     static final int SJF = 2; // Last 50% of quantum - Shortest Job First phase
-    //this whole part is not needed can be removed its just for the int main
-    // static lists to track execution history for debugging/display
-    static final List<String> timep = new ArrayList<>(); // Time stamps
-    static final List<String> process = new ArrayList<>(); // Process names at each time
-    static final List<String> phasep = new ArrayList<>(); // Current phase at each time
-    static final List<String> remainingT = new ArrayList<>(); // Remaining time for current process
-    static final List<String> usedQ = new ArrayList<>(); // Quantum used so far
-
-    // add flag to track if we already checked for preemption in PRIORITY phase
-    static boolean priorityPreemptionChecked = false; // prevents multiple priority checks in same phase
 
     // process class representing each process in the system
     public static class Process {
@@ -97,7 +87,9 @@ public class AGScheduler {
 
         // Track previous phase to detect phase changes
         int previousPhase = -1; // no previous phase initially
-        priorityPreemptionChecked = false; // reset preemption check flag
+
+        // add flag to track if we already checked for preemption in PRIORITY phase
+        boolean priorityPreemptionChecked = false; // prevents multiple priority checks in same phase
 
         // initialize ready queue with processes that arrive at time 0
         for (int i = 0; i < n; i++) {
@@ -145,18 +137,6 @@ public class AGScheduler {
             current.remaining--; // decrement remaining execution time
             current.usedInQuantum++; // increment quantum usage
             time++; // add time
-            //timep.add("" + time); // record time for timeline
-            //process.add(current.name); // record process name for timeline
-            //remainingT.add("" + current.remaining); // record remaining time for timeline
-
-            // get current phase and detect phase change
-            int currentPhase = current.getPhase();
-            phasep.add("" + currentPhase); // record phase for timeline
-            usedQ.add(""+ current.usedInQuantum); // record quantum usage for timeline
-
-            // check if phase changed from last time unit
-            boolean phaseChanged = (previousPhase != currentPhase);
-            previousPhase = currentPhase; // update previous phase
 
             // check if current process just finished
             if (current.remaining == 0) {
@@ -194,6 +174,11 @@ public class AGScheduler {
                     ready.add(processes.get(i));
                 }
             }
+
+            // get current phase and detect phase change
+            int currentPhase = current.getPhase();
+            boolean phaseChanged = (previousPhase != currentPhase);
+            previousPhase = currentPhase; // update previous phase
 
             //PRIORITY PHASE
             // Preemption only when ENTERING priority phase
@@ -281,67 +266,52 @@ public class AGScheduler {
                 totalT / n  // Average turnaround time
         );
     }
-//main
+
     public static void main(String[] args) {
-        List<Process> processes = new ArrayList<>();
 
-        //Test Case 5 - Create processes with different characteristics
-        processes.add(new Process("P1", 0, 25, 3, 5));
-        processes.add(new Process("P2", 1, 18, 2, 4));
-        processes.add(new Process("P3", 3, 22, 4, 6));
-        processes.add(new Process("P4", 5, 15, 1, 3));
-        processes.add(new Process("P5", 8, 20, 5, 7));
-        processes.add(new Process("P6", 12, 12, 6, 4));
+        List<Process> processes1 = new ArrayList<>();
+        System.out.println("Test Case 5");
+        processes1.add(new Process("P1", 0, 25, 3, 5));
+        processes1.add(new Process("P2", 1, 18, 2, 4));
+        processes1.add(new Process("P3", 3, 22, 4, 6));
+        processes1.add(new Process("P4", 5, 15, 1, 3));
+        processes1.add(new Process("P5", 8, 20, 5, 7));
+        processes1.add(new Process("P6", 12, 12, 6, 4));
 
-        // Run the scheduler
-        Result result = run(processes);
-
-        // Print execution order
-        System.out.println("Execution Order: " + result.order);
-
-        // Print each process results
-        for (ProcessResult pr : result.processResults) {
+        Result result1 = run(processes1);
+        System.out.println("Execution Order: " + result1.order);
+        for (ProcessResult pr : result1.processResults) {
             System.out.println("Process " + pr.name +
                     ": Waiting Time = " + pr.waitingTime +
                     ", Turnaround Time = " + pr.turnaroundTime +
                     ", Quantum History = " + pr.quantumHistory);
         }
+        System.out.println("Average Waiting Time: " + result1.avgW);
+        System.out.println("Average Turnaround Time: " + result1.avgT);
 
-        // Print averages
-        System.out.println("Average Waiting Time: " + result.avgW);
-        System.out.println("Average Turnaround Time: " + result.avgT);
+        System.out.println("\n---------------------------------\n");
 
-        // Print detailed execution timeline
-        System.out.println("\n===== Execution Timeline =====");
-        System.out.printf("%-8s %-10s %-10s %-10s %-10s%n",
-                "Time", "Process", "Phase", "Remain", "UsedQ");
 
-        for (int i = 0; i < timep.size(); i++) {
-            // Convert phase number to readable name
-            String phaseName;
-            switch (Integer.parseInt(phasep.get(i))) {
-                case FCFS:
-                    phaseName = "FCFS";
-                    break;
-                case PRIORITY:
-                    phaseName = "PRIORITY";
-                    break;
-                case SJF:
-                    phaseName = "SJF";
-                    break;
-                default:
-                    phaseName = "UNKNOWN";
-            }
+        List<Process> processes2 = new ArrayList<>();
+        System.out.println("Test Case 6");
+        processes2.add(new Process("P1", 0, 14, 4, 6));
+        processes2.add(new Process("P2", 4, 9, 2, 8));
+        processes2.add(new Process("P3", 7, 16, 5, 5));
+        processes2.add(new Process("P4", 10, 7, 1, 10));
+        processes2.add(new Process("P5", 15, 11, 3, 4));
+        processes2.add(new Process("P6", 20, 5, 6, 7));
+        processes2.add(new Process("P7", 25, 8, 7, 9));
 
-            // Print timeline entry
-            System.out.printf(
-                    "%-8s %-10s %-10s %-10s %-10s%n",
-                    timep.get(i),
-                    process.get(i),
-                    phaseName,
-                    remainingT.get(i),
-                    usedQ.get(i)
-            );
+        Result result2 = run(processes2);
+        System.out.println("Execution Order: " + result2.order);
+        for (ProcessResult pr : result2.processResults) {
+            System.out.println("Process " + pr.name +
+                    ": Waiting Time = " + pr.waitingTime +
+                    ", Turnaround Time = " + pr.turnaroundTime +
+                    ", Quantum History = " + pr.quantumHistory);
         }
+        System.out.println("Average Waiting Time: " + result2.avgW);
+        System.out.println("Average Turnaround Time: " + result2.avgT);
     }
+
 }
