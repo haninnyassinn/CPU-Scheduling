@@ -1,164 +1,323 @@
-import java.util.*;
-import java.io.*;
 import com.google.gson.*;
+import java.io.FileReader;
+import java.util.*;
 
+/* =========================
+   Process
+   ========================= */
 class Process {
     String name;
     int arrival, burst, priority;
-    int remaining, completion, waiting, turnaround;
+    int remaining;
 
-    Process() {} // Needed for Gson
+    int completionTime;
+    int waitingTime;
+    int turnaroundTime;
 
-    Process(String name, int arrival, int burst, int priority) {
-        this.name = name;
-        this.arrival = arrival;
-        this.burst = burst;
-        this.priority = priority;
-        this.remaining = burst;
-        waiting = 0;
+    Process(String n, int a, int b, int p) {
+        name = n;
+        arrival = a;
+        burst = b;
+        priority = p;
+        remaining = b;
     }
 }
 
+/* =========================
+   Scheduler Interface
+   ========================= */
 interface Scheduler {
     void run();
     ArrayList<String> getExecutionOrder();
-    ArrayList<Process> getProcesses();
 }
 
+/* =========================
+   Round Robin Scheduler
+   ========================= */
+class RoundRobin implements Scheduler {
 
-class RoundRobin implements Scheduler{
-
-    private ArrayList<Process> processes;  // All processes
-    private int quantum;
-    private int context;
+    private ArrayList<Process> processes;
+    private int quantum, context;
     private int time = 0;
+    private ArrayList<String> executionOrder = new ArrayList<>();
 
-
-    private ArrayList<String> executionOrder = new ArrayList<>(); //stores the order of processes
-
-    //constructor
-    public RoundRobin(ArrayList<Process> processes, int quantum, int context) {
-        this.processes = processes;
-        this.quantum = quantum;
-        this.context = context;
+    RoundRobin(ArrayList<Process> p, int q, int c) {
+        processes = p;
+        quantum = q;
+        context = c;
     }
 
     public void run() {
-        Queue<Process> queue = new LinkedList<>(); // Ready queue for processes
-        int completed = 0; // Number of completed processes
-        int n = processes.size();  // Total number of processes
+        Queue<Process> queue = new LinkedList<>();
+        processes.sort(Comparator.comparingInt(x -> x.arrival));
+        int completed = 0;
 
-        //sort processes by arrival time
-        processes.sort(Comparator.comparingInt(p -> p.arrival));
-
-        // Handle initial idle time
-        while (queue.isEmpty()) { //while no process is ready
-            for (Process p : processes) {
-                if (p.arrival == time)  //if process arrives now
-                    queue.add(p);  //add it to ready queue
-            }
-            if (queue.isEmpty())  //if no process is ready
-                time++; //move time by 1
-
+        while (queue.isEmpty()) {
+            for (Process p : processes)
+                if (p.arrival == time) queue.add(p);
+            if (queue.isEmpty()) time++;
         }
 
-        while (completed < n) {
-            Process current = queue.poll();   // Remove next process from ready queue
-            executionOrder.add(current.name);  //record execution order
+        while (completed < processes.size()) {
 
-            int run = Math.min(quantum, current.remaining);  //calculate execution time
-            current.remaining -= run;  //reduce remaining time of process
+            Process cur = queue.poll();
+            executionOrder.add(cur.name);
+
+            int run = Math.min(quantum, cur.remaining);
+            cur.remaining -= run;
             time += run;
 
-            addArrivals(queue, current); //add any new process arrived during execution
+            addArrivals(queue, cur);
 
-            //if process finished execution
-            if (current.remaining == 0) {
-                current.turnaround = time - current.arrival;
-                current.waiting = current.turnaround - current.burst;
+            if (cur.remaining == 0) {
+                finishProcess(cur);
                 completed++;
-            }
-            // If not finished, put process back into ready queue
-            else {
-                queue.add(current);
+            } else {
+                queue.add(cur);
             }
 
-            //handle context switching
-            if (completed < n) {
+            if (completed < processes.size()) {
                 time += context;
-                addArrivals(queue, null); //add arrivals during context switching
+                addArrivals(queue, null);
             }
         }
     }
-    // Add processes that arrive by current time
-    private void addArrivals(Queue<Process> queue, Process current) {
-        for (Process p : processes) {
+
+    private void addArrivals(Queue<Process> q, Process cur) {
+        for (Process p : processes)
             if (p.arrival <= time && p.remaining > 0 &&
-                    !queue.contains(p) && p != current) {
-                queue.add(p);
-            }
-        }
+                    !q.contains(p) && p != cur)
+                q.add(p);
     }
 
-    public ArrayList<String> getExecutionOrder() { return executionOrder; }
-    public ArrayList<Process> getProcesses() { return processes; }
-}
-
-
-class TestCase {
-    String name;
-    Input input;
-    ExpectedOutput expectedOutput;
-
-    static class Input {
-        int contextSwitch;
-        int rrQuantum;
-        ArrayList<Process> processes;
+    private void finishProcess(Process p) {
+        p.completionTime = time;
+        p.turnaroundTime = p.completionTime - p.arrival;
+        p.waitingTime = p.turnaroundTime - p.burst;
     }
-    static class ExpectedOutput {
-        Algorithm RR;
-    }
-    static class Algorithm {
-        ArrayList<String> executionOrder;
+
+    public ArrayList<String> getExecutionOrder() {
+        return executionOrder;
     }
 }
 
-class TestRunner {
+/* =========================
+   SJF (Non-Preemptive)
+   ========================= */
+//class SJF implements Scheduler {
+//
+//
+//    public ArrayList<String> getExecutionOrder() {
+//        return executionOrder;
+//    }
+//}
 
-    public static void runRRTest(TestCase tc) {
-        ArrayList<Process> copy = new ArrayList<>();
-        for (Process p : tc.input.processes) {
-            copy.add(new Process(p.name, p.arrival, p.burst, p.priority));
-        }
+/* =========================
+   Priority (Non-Preemptive)
+   ========================= */
+//class PriorityScheduler implements Scheduler {
+//
+//   public ArrayList<String> getExecutionOrder() {
+//        return executionOrder;
+//    }
+//}
 
-        RoundRobin rr = new RoundRobin(copy, tc.input.rrQuantum, tc.input.contextSwitch);
-        rr.run();
-
-        ArrayList<String> actual = rr.getExecutionOrder();
-        ArrayList<String> expected = tc.expectedOutput.RR.executionOrder;
-
-        System.out.println("\n=== " + tc.name + " (RR) ===");
-        System.out.println("Expected: " + expected);
-        System.out.println("Actual : " + actual);
-
-        if (actual.equals(expected)) {
-            System.out.println("RESULT : PASS");
-        } else {
-            System.out.println("RESULT : FAIL");
-        }
-    }
-}
-public class Main {
+/* =========================================================
+   Scheduler Test Runner
+   ========================================================= */
+class SchedulerTestRunner {
 
     public static void main(String[] args) {
 
-        try {
-            Gson gson = new Gson();
-            Reader reader = new FileReader("test_cases_v3/Other_Schedulers/test_1.json");
-            TestCase tc = gson.fromJson(reader, TestCase.class);
-            TestRunner.runRRTest(tc);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        String[] tests = {
+                "test_cases_v5/Other_Schedulers/test_1.json",
+                "test_cases_v5/Other_Schedulers/test_2.json",
+                "test_cases_v5/Other_Schedulers/test_3.json",
+                "test_cases_v5/Other_Schedulers/test_4.json",
+                "test_cases_v5/Other_Schedulers/test_5.json",
+                "test_cases_v5/Other_Schedulers/test_6.json",
+        };
+
+        for (String path : tests) {
+            runTest(path);
         }
-}
+    }
+
+    static void runTest(String path) {
+        System.out.println("\n=================================");
+        System.out.println("RUNNING TEST: " + path);
+        System.out.println("=================================");
+
+        try {
+            JsonObject json =
+                    JsonParser.parseReader(new FileReader(path)).getAsJsonObject();
+
+            List<Process> base = loadProcesses(json);
+
+            runRR(json, clone(base));
+            runSJF(json, clone(base));
+            runPriority(json, clone(base));
+
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
+    }
+
+    /* ======================= RR ======================= */
+    static boolean runRR(JsonObject json, List<Process> processes) {
+
+        JsonObject input = json.getAsJsonObject("input");
+        int quantum = input.get("rrQuantum").getAsInt();
+        int cs = input.get("contextSwitch").getAsInt();
+
+        RoundRobin rr = new RoundRobin(
+                new ArrayList<>(processes),
+                quantum,
+                cs
+        );
+        rr.run();
+
+        JsonObject expected = json.getAsJsonObject("expectedOutput")
+                .getAsJsonObject("RR");
+
+        boolean pass = true;
+
+        // ================= Execution Order =================
+        ArrayList<String> actualOrder = rr.getExecutionOrder();
+        JsonArray expectedOrder = expected.getAsJsonArray("executionOrder");
+
+        if (actualOrder.size() != expectedOrder.size()) {
+            pass = false;
+        } else {
+            for (int i = 0; i < expectedOrder.size(); i++) {
+                if (!actualOrder.get(i)
+                        .equals(expectedOrder.get(i).getAsString())) {
+                    pass = false;
+                    break;
+                }
+            }
+        }
+
+        // ================= Process Times =================
+        JsonArray expectedProcesses = expected.getAsJsonArray("processResults");
+
+        for (JsonElement e : expectedProcesses) {
+            JsonObject ep = e.getAsJsonObject();
+            String name = ep.get("name").getAsString();
+            int ew = ep.get("waitingTime").getAsInt();
+            int et = ep.get("turnaroundTime").getAsInt();
+
+            Process p = processes.stream()
+                    .filter(x -> x.name.equals(name))
+                    .findFirst()
+                    .orElse(null);
+
+            if (p == null || p.waitingTime != ew || p.turnaroundTime != et) {
+                pass = false;
+            }
+        }
+
+        // ================= Averages =================
+        double aw = processes.stream().mapToInt(p -> p.waitingTime).average().orElse(0);
+        double at = processes.stream().mapToInt(p -> p.turnaroundTime).average().orElse(0);
+
+        double ew = expected.get("averageWaitingTime").getAsDouble();
+        double et = expected.get("averageTurnaroundTime").getAsDouble();
+
+        if (Math.abs(aw - ew) > 0.01 || Math.abs(at - et) > 0.01) {
+            pass = false;
+        }
+
+        // ================= OUTPUT =================
+        printResults("Round Robin", actualOrder, processes);
+
+        System.out.println(pass ? "✅ RESULT: PASS" : "❌ RESULT: FAIL");
+
+        return pass;
+    }
+
+
+    /* ======================= SJF ======================= */
+
+    static boolean runSJF(JsonObject json, List<Process> processes) {
+
+        SJF sjf = new SJF(new ArrayList<>(processes));
+        sjf.run();
+
+        JsonObject expected = json.getAsJsonObject("expectedOutput")
+                .getAsJsonObject("SJF");
+
+        boolean pass = validate(expected, sjf.getExecutionOrder(), processes);
+
+        printResults("SJF", sjf.getExecutionOrder(), processes);
+        System.out.println(pass ? "✅ RESULT: PASS" : "❌ RESULT: FAIL");
+
+        return pass;
+    }
+
+
+    /* ======================= Priority ======================= */
+
+    static boolean runPriority(JsonObject json, List<Process> processes) {
+
+        PriorityScheduler ps = new PriorityScheduler(new ArrayList<>(processes));
+        ps.run();
+
+        JsonObject expected = json.getAsJsonObject("expectedOutput")
+                .getAsJsonObject("Priority");
+
+        boolean pass = validate(expected, ps.getExecutionOrder(), processes);
+
+        printResults("Priority", ps.getExecutionOrder(), processes);
+        System.out.println(pass ? "✅ RESULT: PASS" : "❌ RESULT: FAIL");
+
+        return pass;
+    }
+
+
+    /* ======================= OUTPUT ======================= */
+    static void printResults(String name, ArrayList<String> order, List<Process> p) {
+
+        System.out.println("\n==== " + name + " ====");
+        System.out.println("Execution Order: " + order);
+
+        double tw = 0, tt = 0;
+
+        System.out.printf("%-8s %-14s %-18s%n",
+                "Process", "Waiting Time", "Turnaround Time");
+
+        for (Process x : p) {
+            System.out.printf("%-8s %-14d %-18d%n",
+                    x.name, x.waitingTime, x.turnaroundTime);
+            tw += x.waitingTime;
+            tt += x.turnaroundTime;
+        }
+
+        System.out.printf("Average Waiting Time    = %.2f%n", tw / p.size());
+        System.out.printf("Average Turnaround Time = %.2f%n", tt / p.size());
+    }
+
+    /* ======================= HELPERS ======================= */
+    static List<Process> loadProcesses(JsonObject json) {
+        List<Process> list = new ArrayList<>();
+        JsonArray arr = json.getAsJsonObject("input").getAsJsonArray("processes");
+
+        for (JsonElement e : arr) {
+            JsonObject p = e.getAsJsonObject();
+            list.add(new Process(
+                    p.get("name").getAsString(),
+                    p.get("arrival").getAsInt(),
+                    p.get("burst").getAsInt(),
+                    p.get("priority").getAsInt()
+            ));
+        }
+        return list;
+    }
+
+    static List<Process> clone(List<Process> src) {
+        List<Process> copy = new ArrayList<>();
+        for (Process p : src)
+            copy.add(new Process(p.name, p.arrival, p.burst, p.priority));
+        return copy;
+    }
 }
