@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.FileReader;
 import java.util.*;
 
-/* ===================== MODELS ===================== */
+
 
 class Process {
     String name;
@@ -15,9 +15,9 @@ class Process {
     int waiting;
     int turnaround;
 
-    Process() {} // Gson
+    Process() {} // used by Gson
 
-    Process(String n, int a, int b) {
+    Process(String n, int a, int b) { //constructor
         name = n;
         arrival = a;
         burst = b;
@@ -51,7 +51,6 @@ class ProcessResult {
     int turnaroundTime;
 }
 
-/* ===================== SJF SCHEDULER ===================== */
 
 class SJFScheduler {
 
@@ -105,7 +104,7 @@ class SJFScheduler {
     }
 }
 
-/* ===================== JUNIT TEST ===================== */
+
 
 class SJFJUnitTest {
 
@@ -153,7 +152,7 @@ class SJFJUnitTest {
                         Algorithm.class
                 );
 
-        // ---- assert per process ----
+
         for (ProcessResult pr : expected.processResults) {
 
             Process p = result.stream()
@@ -168,7 +167,7 @@ class SJFJUnitTest {
                     "Turnaround time mismatch for " + p.name);
         }
 
-        // ---- average asserts ----
+
         double aw = result.stream().mapToInt(p -> p.waiting).average().orElse(0);
         double at = result.stream().mapToInt(p -> p.turnaround).average().orElse(0);
 
@@ -177,7 +176,7 @@ class SJFJUnitTest {
     }
 }
 
-/* ===================== MAIN ===================== */
+
 
 public class SJF {
 
